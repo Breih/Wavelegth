@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wavelength</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1c1b18;
+    --text2: #6b6960;
+    --text3: #9e9b93;
+    --accent: #1D9E75;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1917;
+      --surface: #242220;
+      --surface2: #2e2c2a;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.18);
+      --text: #f0ede8;
+      --text2: #a09d96;
+      --text3: #6b6860;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  #wl {
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .wl-hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .wl-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text2);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 5px 12px;
+  }
+
+  .wl-badge strong {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Canvas */
+  #wl-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Label row */
+  .wl-lblrow {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 14px;
+    margin: 8px 0 10px;
+  }
+
+  .wl-lbl {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text2);
+    max-width: 46%;
+    line-height: 1.3;
+  }
+
+  .wl-lbl.r { text-align: right; }
+
+  /* Clue bar */
+  .wl-cbar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 18px;
+    text-align: center;
+    margin: 8px 0;
+    box-shadow: var(--shadow);
+  }
+
+  .wl-cbar .lbl {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .wl-cbar .val {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Panel card */
+  .wl-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem 1.25rem 1.5rem;
+    margin-top: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  /* Turn banner */
+  .wl-turn-banner {
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .wl-turn-banner .who {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 4px;
+  }
+
+  .wl-turn-banner .name {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Note */
+  .wl-note {
+    font-size: 12px;
+    color: var(--text3);
+    margin: 0 0 16px;
+    padding: 9px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--accent);
+    line-height: 1.5;
+  }
+
+  /* Fields */
+  .wl-2col { display: flex; gap: 10px; }
+  .wl-2col > .wl-field { flex: 1; }
+  .wl-field { margin-bottom: 12px; }
+
+  .wl-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 5px;
+  }
+
+  .wl-field input[type="text"],
+  .wl-field input[type="text"]:focus {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: border-color .15s;
+    font-family: inherit;
+  }
+
+  .wl-field input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.12);
+  }
+
+  /* Range */
+  .wl-rng { margin: 14px 0; }
+
+  .wl-rng label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .wl-rng input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+
+  .wl-rng input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    border: 3px solid var(--surface);
+  }
+
+  .wl-rng input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 3px solid var(--surface);
+  }
+
+  /* Buttons */
+  .wl-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    border-radius: var(--radius-md);
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    font-family: inherit;
+    transition: opacity .15s, transform .1s;
+    letter-spacing: .01em;
+  }
+
+  .wl-btn:hover { opacity: .88; }
+  .wl-btn:active { transform: scale(.98); }
+
+  /* Pass screen */
+  .wl-pass {
+    text-align: center;
+    padding: 1rem .5rem 1.25rem;
+  }
+
+  .wl-pass h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+
+  .wl-pass p {
+    font-size: 14px;
+    color: var(--text2);
+    margin: 0 0 1.25rem;
+    line-height: 1.6;
+  }
+
+  .wl-pass .clue {
+    font-size: 26px;
+    font-weight: 600;
+    padding: 14px 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin: 0 0 1.5rem;
+    word-break: break-word;
+  }
+
+  /* Reveal */
+  .wl-big {
+    text-align: center;
+    padding: .5rem 0 1rem;
+  }
+
+  .wl-big .pts {
+    font-size: 60px;
+    font-weight: 700;
+    line-height: 1;
+    display: block;
+  }
+
+  .wl-big .sub {
+    font-size: 17px;
+    color: var(--text2);
+    margin-top: 6px;
+    display: block;
+  }
+
+  /* Divider */
+  .wl-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* History pills */
+  .wl-hist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .wl-hb {
+    flex: 1;
+    min-width: 40px;
+    text-align: center;
+    padding: 9px 4px;
+    border-radius: var(--radius-md);
+  }
+
+  .wl-hb .p { font-size: 18px; font-weight: 600; display: block; }
+  .wl-hb .r { font-size: 11px; color: var(--text2); display: block; margin-top: 2px; }
+
+  /* Legend */
+  .wl-legend {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 10px 0 4px;
+    flex-wrap: wrap;
+  }
+
+  .wl-leg-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .wl-leg-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* Players section */
+  .wl-players-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1rem 1.25rem;
+    margin-top: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .wl-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    margin-bottom: 10px;
+  }
+
+  .wl-player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-md);
+    margin-bottom: 6px;
+    background: var(--surface2);
+    border: 1px solid transparent;
+    transition: border-color .15s;
+  }
+
+  .wl-player-row.active {
+    border-color: var(--accent);
+    background: rgba(29,158,117,0.06);
+  }
+
+  .wl-turn-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border2);
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+
+  .wl-turn-dot.on { background: var(--accent); box-shadow: 0 0 0 3px rgba(29,158,117,0.2); }
+
+  .wl-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+    letter-spacing: .02em;
+  }
+
+  .wl-player-name-input {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    min-width: 0;
+    cursor: text;
+  }
+
+  .wl-player-name-input::placeholder { color: var(--text3); }
+
+  .wl-player-pts {
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 48px;
+    text-align: right;
+    color: var(--text2);
+  }
+
+  .wl-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    margin-top: 6px;
+    font-family: inherit;
+    transition: background .15s, color .15s;
+  }
+
+  .wl-add-btn:hover {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  /* Scores in reveal */
+  .wl-scores-grid { margin-bottom: 4px; }
+
+  /* Remove player */
+  .wl-remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 16px;
+    padding: 0 2px;
+    line-height: 1;
+    transition: color .15s;
+    flex-shrink: 0;
+  }
+
+  .wl-remove-btn:hover { color: #E24B4A; }
+
+  /* ── Team system ── */
+  .wl-teams-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .wl-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+  }
+
+  .wl-toggle-switch input { display: none; }
+
+  .wl-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border2);
+    border-radius: 99px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+
+  .wl-toggle-slider::before {
+    content: '';
+    position: absolute;
+    left: 3px; top: 3px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: white;
+    transition: transform .2s;
+  }
+
+  .wl-toggle-switch input:checked + .wl-toggle-slider { background: var(--accent); }
+  .wl-toggle-switch input:checked + .wl-toggle-slider::before { transform: translateX(18px); }
+
+  .wl-teams-panel { display: none; margin-top: 10px; }
+  .wl-teams-panel.visible { display: block; }
+
+  .wl-team-block {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    background: var(--surface2);
+  }
+
+  .wl-team-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .wl-team-color-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .wl-team-name-input {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    min-width: 0;
+  }
+
+  .wl-team-score {
+    font-size: 15px;
+    font-weight: 700;
+    min-width: 54px;
+    text-align: right;
+  }
+
+  .wl-team-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .wl-team-member-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+
+  .wl-team-member-chip.assigned { font-weight: 500; }
+  .wl-team-member-chip.unassigned { opacity: .5; font-style: italic; }
+
+  .wl-team-scores-reveal {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .wl-team-score-card {
+    flex: 1;
+    text-align: center;
+    padding: 12px 8px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+  }
+
+  .wl-team-score-card .tsn { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .wl-team-score-card .tsp { font-size: 28px; font-weight: 700; }
+  .wl-team-score-card .tsm { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .wl-turn-team-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-bottom: 4px;
+    letter-spacing: .03em;
+  }
+
+  .wl-winner-banner {
+    text-align: center;
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div id="wl">
+  <div class="wl-hdr">
+    <div class="wl-badge">Ronda <strong id="wl-rn">1</strong></div>
+    <div class="wl-badge">Total <strong id="wl-tt">0</strong> pts</div>
+  </div>
+
+  <canvas id="wl-canvas"></canvas>
+
+  <div class="wl-lblrow" id="wl-lr">
+    <span class="wl-lbl" id="wl-ll">Frío</span>
+    <span class="wl-lbl r" id="wl-rl">Caliente</span>
+  </div>
+
+  <div class="wl-cbar" id="wl-cb">
+    <div class="lbl">Pista</div>
+    <div class="val" id="wl-cv"></div>
+  </div>
+
+  <!-- Setup panel -->
+  <div class="wl-panel" id="wl-ps">
+    <div class="wl-turn-banner">
+      <div class="who">Turno de</div>
+      <span class="wl-turn-team-badge" id="wl-cur-team-badge" style="display:none"></span>
+      <div class="name" id="wl-cur-name">Jugador 1</div>
+    </div>
+    <p class="wl-note">Solo el que da la pista configura esta pantalla</p>
+    <div class="wl-2col">
+      <div class="wl-field">
+        <label>Extremo izquierdo</label>
+        <input type="text" id="wl-li" value="Frío" maxlength="25">
+      </div>
+      <div class="wl-field">
+        <label>Extremo derecho</label>
+        <input type="text" id="wl-ri" value="Caliente" maxlength="25">
+      </div>
+    </div>
+    <div class="wl-field">
+      <label>Pista para el adivinador</label>
+      <input type="text" id="wl-ci" placeholder='Ej: "El sol de agosto"' maxlength="60">
+    </div>
+    <div class="wl-rng">
+      <label>Mueve el mouse sobre la ruleta para ubicar la zona de puntaje</label>
+      <input type="range" id="wl-ts" min="5" max="95" value="50" step="1" style="display:none">
+    </div>
+    <div class="wl-legend">
+      <span class="wl-leg-item"><span class="wl-leg-dot" style="background:#E24B4A"></span>5 pts</span>
+      <span class="wl-leg-item"><span class="wl-leg-dot" style="background:#D85A30"></span>3 pts</span>
+      <span class="wl-leg-item"><span class="wl-leg-dot" style="background:#FAC775"></span>1 pt</span>
+    </div>
+    <button class="wl-btn" onclick="W.doPass()">Pasar al adivinador ↗</button>
+  </div>
+
+  <!-- Transition panel -->
+  <div class="wl-panel" id="wl-pt" style="display:none">
+    <div class="wl-pass">
+      <h3>Pasa el dispositivo</h3>
+      <p>El adivinador puede tomarlo ahora.<br>La pista es:</p>
+      <div class="clue" id="wl-tc"></div>
+      <button class="wl-btn" onclick="W.doGuess()">Estoy listo — a adivinar ↗</button>
+    </div>
+  </div>
+
+  <!-- Guess panel -->
+  <div class="wl-panel" id="wl-pg" style="display:none">
+    <div class="wl-rng">
+      <label>Usa el mouse sobre la ruleta para mover la aguja y adivinar</label>
+      <input type="range" id="wl-gs" min="0" max="100" value="50" step="1" style="display:none">
+    </div>
+    <button class="wl-btn" onclick="W.doReveal()">Revelar resultado ↗</button>
+  </div>
+
+  <!-- Reveal panel -->
+  <div class="wl-panel" id="wl-pv" style="display:none">
+    <div class="wl-big">
+      <span class="pts" id="wl-pp"></span>
+      <span class="sub" id="wl-pl"></span>
+    </div>
+    <div class="wl-winner-banner" id="wl-winner-banner" style="display:none"></div>
+    <div class="wl-divider"></div>
+    <div class="wl-scores-grid" id="wl-scores-reveal"></div>
+    <div class="wl-divider"></div>
+    <div class="wl-hist" id="wl-hist"></div>
+    <button class="wl-btn" onclick="W.doNext()">Siguiente ronda ↗</button>
+  </div>
+
+  <!-- Players panel -->
+  <div class="wl-players-panel">
+    <div class="wl-teams-toggle">
+      <div class="wl-section-title" style="margin-bottom:0">Jugadores</div>
+      <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);cursor:pointer">
+        Equipos
+        <label class="wl-toggle-switch">
+          <input type="checkbox" id="wl-teams-toggle" onchange="W.toggleTeams(this.checked)">
+          <span class="wl-toggle-slider"></span>
+        </label>
+      </label>
+    </div>
+    <div id="wl-players-list"></div>
+    <button class="wl-add-btn" onclick="W.addPlayer()">+ Añadir jugador</button>
+
+    <!-- Teams panel -->
+    <div class="wl-teams-panel" id="wl-teams-panel">
+      <div class="wl-section-title" style="margin:12px 0 8px">Equipos — arrastra jugadores para asignarlos</div>
+      <div id="wl-teams-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const W = (() => {
+  const DW = 560, DH = 280;
+  const CX = 280, CY = 272, OR = 245, IR = 85;
+  const ZW = [5, 10, 15];
+  const ZC = ['#E24B4A','#D85A30','#FAC775'];
+  function labelForPts(pts) {
+    if (pts === 5) return '¡Perfecto!';
+    if (pts === 3) return 'Bien';
+    if (pts === 1) return 'Casi';
+    return 'Fallido';
+  }
+  const PC = ['#888780','#FAC775','#FAC775','#EF9F27','#D85A30','#E24B4A'];
+  const ABGS = ['#EEEDFE','#E1F5EE','#FAECE7','#E6F1FB','#FAEEDA','#FBEAF0'];
+  const ATXS = ['#3C3489','#085041','#993C1D','#185FA5','#854F0B','#721F3E'];
+
+  // Team colors
+  const TEAM_COLORS = ['#3B82F6','#EF4444','#8B5CF6','#F59E0B'];
+  const TEAM_BG     = ['rgba(59,130,246,0.08)','rgba(239,68,68,0.08)','rgba(139,92,246,0.08)','rgba(245,158,11,0.08)'];
+
+  let S = {
+    phase: 'setup', left: 'Frío', right: 'Caliente',
+    clue: '', target: 50, guess: 50, round: 1, hist: [], curPlayer: 0,
+    curTeam: 0
+  };
+
+  let players = [
+    { name: 'Jugador 1', score: 0, team: null },
+    { name: 'Jugador 2', score: 0, team: null }
+  ];
+
+  let teams = [
+    { name: 'Equipo Azul',   score: 0 },
+    { name: 'Equipo Rojo',   score: 0 }
+  ];
+
+  let teamsEnabled = false;
+  // Which player index is currently being drag-assigned
+  let dragPlayer = null;
+
+  const $ = id => document.getElementById(id);
+  const ang = p => Math.PI * (1 + p / 100);
+  const isDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const initials = n => n.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+
+  // ── Team helpers ──
+  function teamOfPlayer(i) {
+    return players[i].team;
+  }
+
+  function teamScore(ti) {
+    return players.filter(p => p.team === ti).reduce((a,p) => a + p.score, 0);
+  }
+
+  function currentTeamName() {
+    if (!teamsEnabled) return null;
+    const t = S.curTeam;
+    return teams[t] ? teams[t].name : null;
+  }
+
+  // ── Render players list ──
+  function renderPlayers() {
+    const list = $('wl-players-list');
+    list.innerHTML = players.map((p, i) => {
+      const bi = i % ABGS.length;
+      const isActive = i === S.curPlayer && S.phase === 'setup';
+      const teamDot = teamsEnabled && p.team !== null
+        ? `<span style="width:8px;height:8px;border-radius:50%;background:${TEAM_COLORS[p.team]};display:inline-block;flex-shrink:0"></span>`
+        : '';
+      return `<div class="wl-player-row${isActive ? ' active' : ''}" id="pr-${i}"
+          draggable="${teamsEnabled}"
+          ondragstart="W._dragStart(${i})"
+          style="${teamsEnabled && p.team !== null ? `border-color:${TEAM_COLORS[p.team]}55;background:${TEAM_BG[p.team]}` : ''}">
+        <div class="wl-turn-dot${i === S.curPlayer ? ' on' : ''}"></div>
+        <div class="wl-avatar" style="background:${ABGS[bi]};color:${ATXS[bi]}">${initials(p.name)}</div>
+        ${teamDot}
+        <input class="wl-player-name-input" type="text" value="${p.name}" maxlength="20"
+          onchange="W.renamePlayer(${i}, this.value)"
+          onblur="W.renamePlayer(${i}, this.value)"
+          placeholder="Nombre">
+        <div class="wl-player-pts" style="color:${PC[Math.min(4, Math.round(p.score / Math.max(1, S.round - 1)))]}">${p.score} pts</div>
+        ${players.length > 2 ? `<button class="wl-remove-btn" onclick="W.removePlayer(${i})" title="Eliminar">×</button>` : ''}
+      </div>`;
+    }).join('');
+
+    if (teamsEnabled) {
+      list.insertAdjacentHTML('afterbegin', `<p style="font-size:11px;color:var(--text3);margin-bottom:8px">Arrastra jugadores hacia un equipo para asignarlos</p>`);
+    }
+
+    renderTeams();
+  }
+
+  // ── Render teams ──
+  function renderTeams() {
+    const panel = $('wl-teams-panel');
+    if (!teamsEnabled) { panel.classList.remove('visible'); return; }
+    panel.classList.add('visible');
+
+    const list = $('wl-teams-list');
+    list.innerHTML = teams.map((t, ti) => {
+      const members = players.filter((p, pi) => p.team === ti);
+      const unassigned = players.filter(p => p.team === null);
+      const ts = teamScore(ti);
+      return `<div class="wl-team-block" id="team-block-${ti}"
+          style="border-color:${TEAM_COLORS[ti]}55;background:${TEAM_BG[ti]}"
+          ondragover="event.preventDefault()"
+          ondrop="W._dropOnTeam(${ti})">
+        <div class="wl-team-header">
+          <span class="wl-team-color-dot" style="background:${TEAM_COLORS[ti]}"></span>
+          <input class="wl-team-name-input" type="text" value="${t.name}" maxlength="24"
+            onchange="W.renameTeam(${ti}, this.value)"
+            onblur="W.renameTeam(${ti}, this.value)">
+          <span class="wl-team-score" style="color:${TEAM_COLORS[ti]}">${ts} pts</span>
+        </div>
+        <div class="wl-team-members">
+          ${members.length === 0
+            ? `<span style="font-size:12px;color:var(--text3);font-style:italic">Sin miembros aún</span>`
+            : members.map((p, _) => {
+                const pi = players.indexOf(p);
+                return `<span class="wl-team-member-chip assigned"
+                  style="border-color:${TEAM_COLORS[ti]}55;color:${TEAM_COLORS[ti]}"
+                  onclick="W._unassignPlayer(${pi})" title="Quitar del equipo">
+                  ${p.name} ×
+                </span>`;
+              }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+
+    // Unassigned section
+    const unassigned = players.filter(p => p.team === null);
+    if (unassigned.length > 0) {
+      list.insertAdjacentHTML('beforeend', `
+        <div style="margin-top:6px">
+          <div class="wl-section-title" style="margin-bottom:6px">Sin equipo</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            ${unassigned.map(p => {
+              const pi = players.indexOf(p);
+              return `<span class="wl-team-member-chip unassigned" draggable="true"
+                ondragstart="W._dragStart(${pi})">
+                ${p.name}
+              </span>`;
+            }).join('')}
+          </div>
+        </div>`);
+    }
+  }
+
+  function renderScoresReveal() {
+    const el = $('wl-scores-reveal');
+    if (!el) return;
+
+    if (teamsEnabled) {
+      // Show team scores prominently, then individual below
+      const teamCards = teams.map((t, ti) => {
+        const ts = teamScore(ti);
+        const isActive = ti === S.curTeam;
+        return `<div class="wl-team-score-card"
+          style="border-color:${TEAM_COLORS[ti]}55;background:${TEAM_BG[ti]}${isActive ? ';box-shadow:0 0 0 2px '+TEAM_COLORS[ti] : ''}">
+          <div class="tsn" style="color:${TEAM_COLORS[ti]}">${t.name}</div>
+          <div class="tsp" style="color:${TEAM_COLORS[ti]}">${ts}</div>
+          <div class="tsm">puntos</div>
+        </div>`;
+      }).join('');
+
+      el.innerHTML = `
+        <div class="wl-team-scores-reveal">${teamCards}</div>
+        <div class="wl-section-title" style="margin-bottom:8px">Individual</div>
+        ${players.map((p, i) => {
+          const bi = i % ABGS.length;
+          const tc = p.team !== null ? TEAM_COLORS[p.team] : 'var(--text2)';
+          return `<div class="wl-player-row${i === S.curPlayer ? ' active' : ''}">
+            <div class="wl-avatar" style="background:${ABGS[bi]};color:${ATXS[bi]}">${initials(p.name)}</div>
+            <div style="flex:1;font-size:14px;font-weight:500">${p.name}${p.team !== null ? ` <span style="font-size:11px;color:${tc}">${teams[p.team].name}</span>` : ''}</div>
+            <div class="wl-player-pts">${p.score} pts</div>
+          </div>`;
+        }).join('')}`;
+    } else {
+      el.innerHTML = `<div class="wl-section-title" style="margin-bottom:10px">Marcador</div>` +
+        players.map((p, i) => {
+          const bi = i % ABGS.length;
+          return `<div class="wl-player-row${i === S.curPlayer ? ' active' : ''}">
+            <div class="wl-avatar" style="background:${ABGS[bi]};color:${ATXS[bi]}">${initials(p.name)}</div>
+            <div style="flex:1;font-size:14px;font-weight:500">${p.name}</div>
+            <div class="wl-player-pts">${p.score} pts</div>
+          </div>`;
+        }).join('');
+    }
+  }
+
+  // ── Drag & drop ──
+  function _dragStart(pi) { dragPlayer = pi; }
+
+  function _dropOnTeam(ti) {
+    if (dragPlayer === null) return;
+    players[dragPlayer].team = ti;
+    dragPlayer = null;
+    renderPlayers();
+  }
+
+  function _unassignPlayer(pi) {
+    players[pi].team = null;
+    renderPlayers();
+  }
+
+  // ── Toggle teams ──
+  function toggleTeams(enabled) {
+    teamsEnabled = enabled;
+    if (!enabled) {
+      // Clear all assignments
+      players.forEach(p => p.team = null);
+    }
+    renderPlayers();
+  }
+
+  function renameTeam(ti, val) {
+    teams[ti].name = val.trim() || `Equipo ${ti + 1}`;
+    renderTeams();
+  }
+
+  // ── Canvas ──
+  function getCtx() {
+    const c = $('wl-canvas');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (c._dpr !== dpr) {
+      c.width = DW * dpr; c.height = DH * dpr; c._dpr = dpr;
+    }
+    const x = c.getContext('2d');
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return x;
+  }
+
+  function arcFill(x, p1, p2, col) {
+    const eps = 1e-6;
+    const a1 = ang(p1 <= 0 ? 0 : p1) - (p1 <= 0 ? eps : 0);
+    const a2 = ang(p2 >= 100 ? 100 : p2) + (p2 >= 100 ? eps : 0);
+    x.beginPath();
+    x.arc(CX, CY, OR, a1, a2, false);
+    x.arc(CX, CY, IR, a2, a1, true);
+    x.closePath();
+    x.fillStyle = col; x.fill();
+  }
+
+  function drawDial() {
+    const x = getCtx();
+    const dk = isDark();
+    const bg = dk ? '#3a3836' : '#dedad4';
+    const nc = dk ? '#f0ede8' : '#1c1b18';
+    const gc = teamsEnabled ? TEAM_COLORS[S.curTeam] : '#1D9E75';
+    const sep = dk ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.11)';
+
+    x.clearRect(0, 0, DW, DH);
+    arcFill(x, 0, 100, bg);
+
+    if (S.phase !== 'guess') {
+      const t = S.target;
+      for (let i = ZW.length - 1; i >= 0; i--) {
+        const w = ZW[i];
+        arcFill(x, Math.max(0, t - w), Math.min(100, t + w), ZC[i]);
+      }
+      for (const w of ZW) {
+        for (const p of [S.target - w, S.target + w]) {
+          if (p > 0 && p < 100) {
+            const a = ang(p);
+            x.beginPath();
+            x.moveTo(CX + IR * Math.cos(a), CY + IR * Math.sin(a));
+            x.lineTo(CX + OR * Math.cos(a), CY + OR * Math.sin(a));
+            x.strokeStyle = sep; x.lineWidth = 1.5; x.stroke();
+          }
+        }
+      }
+    }
+
+    x.globalCompositeOperation = 'destination-out';
+    x.beginPath(); x.arc(CX, CY, IR, 0, 2 * Math.PI); x.fillStyle = 'black'; x.fill();
+    x.globalCompositeOperation = 'source-over';
+
+    x.beginPath(); x.moveTo(CX - OR - 6, CY); x.lineTo(CX + OR + 6, CY);
+    x.strokeStyle = sep; x.lineWidth = 1; x.stroke();
+
+    const needle = (pos, col) => {
+      const a = ang(pos), L = OR - 14;
+      const nx = CX + L * Math.cos(a), ny = CY + L * Math.sin(a);
+      x.beginPath(); x.moveTo(CX, CY); x.lineTo(nx, ny);
+      x.strokeStyle = col; x.lineWidth = 4; x.lineCap = 'round'; x.stroke();
+      x.beginPath(); x.arc(nx, ny, 7, 0, 2 * Math.PI);
+      x.fillStyle = col; x.fill();
+    };
+
+    if (S.phase === 'setup')       needle(S.target, nc);
+    else if (S.phase === 'guess')  needle(S.guess, gc);
+    else { needle(S.target, nc); needle(S.guess, gc); }
+
+    x.beginPath(); x.arc(CX, CY, 10, 0, 2 * Math.PI); x.fillStyle = nc; x.fill();
+  }
+
+  function calcPts(t, g) {
+    const d = Math.abs(t - g);
+    if (d <= ZW[0]) return 5;
+    if (d <= ZW[1]) return 3;
+    if (d <= ZW[2]) return 1;
+    return 0;
+  }
+
+  // ── Render ──
+  function render() {
+    const ph = S.phase;
+    ['ps','pt','pg','pv'].forEach(id => $('wl-' + id).style.display = 'none');
+    const pm = { setup: 'ps', transition: 'pt', guess: 'pg', reveal: 'pv' };
+    $('wl-' + pm[ph]).style.display = '';
+
+    const showDial = ph !== 'transition';
+    $('wl-canvas').style.display = showDial ? 'block' : 'none';
+    $('wl-lr').style.display = showDial ? 'flex' : 'none';
+    $('wl-cb').style.display = (ph === 'guess' || ph === 'reveal') ? '' : 'none';
+
+    $('wl-ll').textContent = S.left;
+    $('wl-rl').textContent = S.right;
+    $('wl-cv').textContent = S.clue;
+    $('wl-rn').textContent = S.round;
+
+    // Header total
+    if (teamsEnabled) {
+      $('wl-tt').textContent = teams.map((t,ti) => `${t.name.split(' ')[1] || t.name}: ${teamScore(ti)}`).join(' · ');
+    } else {
+      $('wl-tt').textContent = players.reduce((a, p) => a + p.score, 0);
+    }
+
+    // Turn banner
+    const cn = $('wl-cur-name');
+    if (cn) cn.textContent = players[S.curPlayer]?.name || 'Jugador';
+
+    // Team badge in turn banner
+    const teamBadgeEl = $('wl-cur-team-badge');
+    if (teamBadgeEl) {
+      if (teamsEnabled && players[S.curPlayer]?.team !== null && players[S.curPlayer]?.team !== undefined) {
+        const ti = players[S.curPlayer].team;
+        teamBadgeEl.style.display = 'inline-block';
+        teamBadgeEl.textContent = teams[ti].name;
+        teamBadgeEl.style.background = TEAM_BG[ti];
+        teamBadgeEl.style.color = TEAM_COLORS[ti];
+      } else {
+        teamBadgeEl.style.display = 'none';
+      }
+    }
+
+    if (ph === 'transition') $('wl-tc').textContent = S.clue || '(sin pista)';
+
+    if (ph === 'reveal') {
+      const last = S.hist[S.hist.length - 1];
+      const pts = last.pts;
+      const pp = $('wl-pp'); pp.textContent = pts + ' pts'; pp.style.color = PC[pts];
+      $('wl-pl').textContent = labelForPts(pts);
+
+      // Winner banner when teams enabled
+      const wb = $('wl-winner-banner');
+      if (wb) {
+        if (teamsEnabled) {
+          const scores = teams.map((t,ti) => ({ name: t.name, score: teamScore(ti), ti }));
+          scores.sort((a,b) => b.score - a.score);
+          if (scores[0].score > scores[1].score) {
+            wb.style.display = 'block';
+            wb.style.background = TEAM_BG[scores[0].ti];
+            wb.style.color = TEAM_COLORS[scores[0].ti];
+            wb.style.border = `1px solid ${TEAM_COLORS[scores[0].ti]}55`;
+            wb.textContent = `🏆 Va ganando ${scores[0].name} con ${scores[0].score} pts`;
+          } else {
+            wb.style.display = 'block';
+            wb.style.background = 'var(--surface2)';
+            wb.style.color = 'var(--text2)';
+            wb.style.border = '1px solid var(--border)';
+            wb.textContent = '🤝 Empate';
+          }
+        } else {
+          wb.style.display = 'none';
+        }
+      }
+
+      $('wl-hist').innerHTML = S.hist.map((h, i) =>
+        `<div class="wl-hb" style="background:${PC[h.pts]}22;border:1px solid ${PC[h.pts]}55">
+          <span class="p" style="color:${PC[h.pts]}">${h.pts}</span>
+          <span class="r">R${i + 1}</span>
+        </div>`
+      ).join('');
+      renderScoresReveal();
+    }
+
+    if (showDial) drawDial();
+    renderPlayers();
+  }
+
+  function doPass() {
+    S.left   = $('wl-li').value.trim() || 'Izquierda';
+    S.right  = $('wl-ri').value.trim() || 'Derecha';
+    S.clue   = $('wl-ci').value.trim();
+    S.target = Math.round(+$('wl-ts').value);
+    if (S.target >= 99) S.target = 100;
+    if (S.target <= 1) S.target = 0;
+    if (!S.clue) { $('wl-ci').focus(); return; }
+    S.phase = 'transition'; render();
+  }
+
+  function doGuess() {
+    S.curPlayer = (S.curPlayer + 1) % players.length;
+    // Update current team to match guesser's team
+    if (teamsEnabled && players[S.curPlayer].team !== null) {
+      S.curTeam = players[S.curPlayer].team;
+    }
+    S.phase = 'guess'; $('wl-gs').value = 50; S.guess = 50; render();
+  }
+
+  function doReveal() {
+    S.guess = +$('wl-gs').value;
+    const pts = calcPts(S.target, S.guess);
+    players[S.curPlayer].score += pts;
+
+    // Also add to team score tracking (reflected via teamScore())
+    S.hist.push({ pts, target: S.target, guess: S.guess, player: S.curPlayer, team: teamsEnabled ? players[S.curPlayer].team : null });
+    S.phase = 'reveal'; render();
+  }
+
+  function doNext() {
+    if (S.hist && S.hist.length) {
+      const last = S.hist[S.hist.length - 1];
+      S.curPlayer = typeof last.player === 'number' ? last.player : S.curPlayer;
+      if (teamsEnabled) {
+        // Alternate teams: next team goes
+        const lastTeam = last.team !== null ? last.team : S.curTeam;
+        S.curTeam = (lastTeam + 1) % teams.length;
+        // Pick a player from that team (first available), or just advance normally
+        const teamMembers = players.map((p,i) => ({p,i})).filter(({p}) => p.team === S.curTeam);
+        if (teamMembers.length > 0) {
+          // Pick the next one round-robin within the team
+          const afterCurrent = teamMembers.find(({i}) => i > S.curPlayer) || teamMembers[0];
+          S.curPlayer = afterCurrent.i;
+        } else {
+          S.curPlayer = (S.curPlayer + 1) % players.length;
+        }
+      }
+    }
+    S.round++; S.phase = 'setup';
+    $('wl-ci').value = ''; $('wl-ts').value = 50; S.target = 50;
+    render();
+  }
+
+  function addPlayer() {
+    if (players.length >= 8) return;
+    players.push({ name: `Jugador ${players.length + 1}`, score: 0, team: null });
+    renderPlayers();
+  }
+
+  function removePlayer(i) {
+    if (players.length <= 2) return;
+    players.splice(i, 1);
+    if (S.curPlayer >= players.length) S.curPlayer = 0;
+    renderPlayers();
+  }
+
+  function renamePlayer(i, val) {
+    players[i].name = val.trim() || `Jugador ${i + 1}`;
+    const cn = $('wl-cur-name');
+    if (cn && i === S.curPlayer) cn.textContent = players[i].name;
+    renderPlayers();
+  }
+
+  $('wl-ts').addEventListener('input', () => { S.target = +$('wl-ts').value; if (S.phase === 'setup') drawDial(); });
+  $('wl-gs').addEventListener('input', () => { S.guess  = +$('wl-gs').value; if (S.phase === 'guess') drawDial(); });
+  $('wl-li').addEventListener('input', () => { S.left  = $('wl-li').value; $('wl-ll').textContent = S.left; });
+  $('wl-ri').addEventListener('input', () => { S.right = $('wl-ri').value; $('wl-rl').textContent = S.right; });
+
+  // Mouse / pointer control for the dial
+  (function(){
+    const c = $('wl-canvas');
+    let active = false;
+
+    function clientToPercent(evt) {
+      const rect = c.getBoundingClientRect();
+      const cxClient = rect.left + rect.width * (CX / DW);
+      const cyClient = rect.top  + rect.height * (CY / DH);
+      const dx = evt.clientX - cxClient;
+      const dy = evt.clientY - cyClient;
+      let deg = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+      if (deg < 180) {
+        const circDist = (a, b) => { const d = Math.abs(a - b); return Math.min(d, 360 - d); };
+        const d180 = circDist(deg, 180);
+        const d360 = circDist(deg, 360);
+        deg = (d360 < d180) ? 360 : 180;
+      }
+      let p = Math.round(((deg - 180) / 180) * 100);
+      if (p >= 99) p = 100;
+      if (p <= 1) p = 0;
+      return Math.max(0, Math.min(100, p));
+    }
+
+    c.addEventListener('pointerdown', (e) => {
+      active = true; c.setPointerCapture(e.pointerId);
+      const p = clientToPercent(e);
+      if (S.phase === 'setup') { S.target = p; $('wl-ts').value = p; }
+      else if (S.phase === 'guess') { S.guess = p; $('wl-gs').value = p; }
+      drawDial();
+    });
+
+    c.addEventListener('pointermove', (e) => {
+      if (!active) return;
+      const p = clientToPercent(e);
+      if (S.phase === 'setup') { S.target = p; $('wl-ts').value = p; }
+      else if (S.phase === 'guess') { S.guess = p; $('wl-gs').value = p; }
+      drawDial();
+    });
+
+    c.addEventListener('pointerup', (e) => { active = false; try { c.releasePointerCapture(e.pointerId); } catch (err){} });
+    c.addEventListener('pointercancel', () => { active = false; });
+    c.addEventListener('pointerleave', () => { active = false; });
+  })();
+
+  render();
+  return { doPass, doGuess, doReveal, doNext, addPlayer, removePlayer, renamePlayer, toggleTeams, renameTeam, _dragStart, _dropOnTeam, _unassignPlayer };
+})();
+</script>
+</body>
+</html>
